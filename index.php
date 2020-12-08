@@ -62,7 +62,6 @@ function save(){
     if(isset($_POST['edit_file']))
     {
         $file_name=$_GET['file'];
-        echo $file_name;
         $write_text=$_POST['edit_text'];
         $handle = fopen($file_name, 'r+');
         fwrite($handle, $write_text);
