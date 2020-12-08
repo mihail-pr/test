@@ -1,5 +1,5 @@
 <?php
-
+error_reporting(E_ALL);
 $action = 'index';
 if (!empty($_GET['action'])) {
     $action = $_GET['action'];
@@ -122,9 +122,6 @@ function upload(){
             $fileType = $_FILES['uploadedFile']['type'];
             $fileNameCmps = explode(".", $fileName);
             $fileExtension = strtolower(end($fileNameCmps));
-
-
-
             $dest_path = 'uploads/';
 
             move_uploaded_file($fileTmpPath, $dest_path.$fileName);
@@ -135,20 +132,16 @@ function upload(){
 
 function delete(){
     $path=$_GET['file'];
-
-    rmRec($path);
-
-    function rmRec($path) {
-        if (is_file($path)) return unlink($path);
-        if (is_dir($path)) {
-            foreach(scandir($path) as $p) if (($p!='.') && ($p!='..'))
-                rmRec($path.DIRECTORY_SEPARATOR.$p);
-            return rmdir($path);
-        }
-        return false;
-    }
+    deleteDir($path);
     header('Location: /');
 }
+
+function deleteDir($path) {
+    return is_file($path) ?
+        @unlink($path) :
+        array_map(__FUNCTION__, glob($path.'/*')) == @rmdir($path);
+}
+
 function render(){
     $dir  = 'uploads';
     $allFiles = scandir($dir);
