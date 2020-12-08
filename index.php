@@ -46,7 +46,7 @@ function view()
     $file=$_GET['file'];
     $name = basename($_GET['file']);
 
-    $content = <<<GVS
+    $content = <<<HTML
  <h1>View Page</h1>
 
 <form method="POST" action="/?action=save_name&file=${file}">
@@ -73,7 +73,7 @@ function view()
 
 
 
-GVS;
+HTML;
     render_layout($content);
 }
 
@@ -90,14 +90,14 @@ HTML;
 
 
 function save(){
-    if(isset($_POST['edit_file']))
-    {
-        $file_name=$_GET['file'];
-        $write_text=$_POST['edit_text'];
-        $handle = fopen($file_name, 'r+');
-        fwrite($handle, $write_text);
-        fclose($handle);
-    }
+
+   $file_name=$_GET['file'];
+    $write_text=$_POST['edit_text'];
+
+
+
+    file_put_contents($file_name,$write_text);
+    header('Location: /');
 
 }
 function save_name(){
@@ -143,6 +143,7 @@ function deleteDir($path) {
 }
 
 function render(){
+    
     $dir  = 'uploads';
     $allFiles = scandir($dir);
     $files = array_diff($allFiles, array('.', '..')); ?>
@@ -166,7 +167,6 @@ function render(){
                     ;}?>
         </tbody>
     </table>
-
     <form method="POST" action="/?action=upload" enctype="multipart/form-data">
         <div>
             <span>Upload a File:</span>
