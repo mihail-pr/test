@@ -1,5 +1,4 @@
 <?php
-
 $string = ltrim($_SERVER['REQUEST_URI'], '/');
 $parts = explode('/', $string, 2);
 $_GET['file'] = $parts['1'];
@@ -97,7 +96,7 @@ function save()
 //Change name
 function save_name()
 {
-   
+
     $oldname = $_GET['file'];
     $newname = $_POST['name'];
     rename($oldname, 'uploads/' . $newname);
@@ -113,8 +112,6 @@ function upload()
             $fileTmpPath = $_FILES['uploadedFile']['tmp_name'];
             $fileName = $_FILES['uploadedFile']['name'];
             $dest_path = $path;
-
-
             move_uploaded_file($fileTmpPath, $dest_path . '/' . $fileName);
             header('Location: /');
         }
@@ -176,18 +173,15 @@ function render($path)
     <table>
         <thead>
         <tr>
-            <th><a href="http://localhost/view/<?php
-                echo $path ?>?sort=name">Name</a></th>
-            <th><a href="">File Size</a></th>
-            <th><a href="">Created_At</a></th>
-            <th><a href="">File Perms</a></th>
+            <th>Name</th>
+            <th>File Size/th>
+            <th>Created_At</th>
+            <th>File Perms</th>
         </tr>
         </thead>
         <tbody>
         <?php
-        foreach ($files
-
-        as $file){ ?>
+        foreach ($files as $file){ ?>
         <tr>
             <td><a href='http://localhost/view/<?php
                 echo $path . $file ?>'><?php
@@ -211,3 +205,5 @@ function render($path)
     </form>
     <?php
 }
+
+
