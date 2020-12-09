@@ -1,4 +1,11 @@
 <?php
+
+$string = ltrim($_SERVER['REQUEST_URI'],'/');
+$parts = explode('/',$string, 2);
+
+$_GET['file'] =$parts['1'];
+$_GET['action'] = $parts['0'] ?: 'index';
+
 $action = 'index';
 if (!empty($_GET['action'])) {
     $action = $_GET['action'];
@@ -29,37 +36,40 @@ elseif ($action == 'permission'){
 
 function show_index()
 {
-    $var = 'My Test Var';
-    $content = render('uploads');
+    $content = render('uploads/');
     render_layout($content);
 }
-//Редактировать файл
+//Просмотреть, редактировать файл
 function view()
 {
-    $path=$_GET['file'];
+
+    $path= $_GET['file'];
 
     if (is_file($path)){
+        print_r($_GET);
         up($path);
         $content = file_get_contents($_GET['file']);
         $name = basename($_GET['file']);
         $content = <<<HTML
  <h1>View Page</h1>
  <!-- Переименовать -->
-<form method="POST" action="/?action=save_name&file=${path}">
+ <p>Переименовать:</p>
+<form method="POST" action="http://localhost/save_name/${path}">
  <textarea name="name">${name}</textarea><br>
 <input type=submit name="edit" value="Сохранить">
 </form>
-<!-- Редактировать содержимоев-->
-<form method="post" action="/?action=save&file=${path}">
+<!-- Редактировать содержимое-->
+<p>Редактировать содержимое файла:</p>
+<form method="post" action="http://localhost/save/${path}">
 <textarea rows="10" cols="20"  name="edit_text">${content}</textarea><br>
 <input type="submit" name="edit_file" value="Сохранить">
 </form>
 <!-- Возврат -->
-<form method="get" action="/">
+<form method="get" action="http://localhost/view/uploads">
 <button>back</button>
 </form>
 <!-- Удаление -->
-<form method="post" action="/?action=delete&file=${path}">
+<form method="post" action="http://localhost/delete/${path}">
         <input type="submit" name="delete"
                 value="delete"/>
 </form>
@@ -67,7 +77,7 @@ HTML;
         render_layout($content);
     }
     elseif (is_dir($path)){
-        render($path);
+        render($path.'/');
     }
 }
 
@@ -92,6 +102,7 @@ function save(){
 
 //Изменение имени файла
 function save_name(){
+
     $oldname = $_GET['file'];
     $newname = $_POST['name'];
     rename($oldname,'uploads/'.$newname);
@@ -101,10 +112,13 @@ function save_name(){
 function upload(){
     if (isset($_POST['uploadBtn']) && $_POST['uploadBtn'] == 'Upload') {
         if (isset($_FILES['uploadedFile']) && $_FILES['uploadedFile']['error'] === UPLOAD_ERR_OK) {
+
             $path=$_GET['file'];
             $fileTmpPath = $_FILES['uploadedFile']['tmp_name'];
             $fileName = $_FILES['uploadedFile']['name'];
             $dest_path = $path;
+
+
             move_uploaded_file($fileTmpPath, $dest_path.'/'.$fileName);
             header('Location: /');
         }
@@ -124,12 +138,12 @@ function deleteDir($path) {
 }
 //Изменение прав доступа
 function permission(){
-    $perm = $_POST['permission'];
     $file = $_GET['file'];
     if (isset($_POST['edit'])) {
+        $perm = $_POST['permission'];
         exec("chmod $perm $file");
         header('Location: /');}
-    ?>
+    ?><p>Изменение прав доступа к файлу:</p>
     <form method="POST">
         <textarea name="permission"></textarea><br>
         <input type=submit name="edit" value="Сохранить">
@@ -137,46 +151,43 @@ function permission(){
     <?php
 }
 //Передвижение на уровень вверх
-function up($path){
-    $up = dirname($path);
-    if ($path !='uploads'){
+function up(){
+    if ($_GET['file'] != 'uploads'){
+        $path = dirname($_GET['file']);
         $content = <<<HTML
-<a href="/?action=view&file=${up}">Вверх</a>
+<a href="http://localhost/view/${path}">up</a>
 HTML;
-    } else{
-        $content = <<<HTML
-<a href="/?action=view&file=${path}">Корень</a>
-HTML;
+        render_layout($content);
+
     }
-    render_layout($content);
 }
 //Отображение таблицы файлов
 function render($path){
-    up($path);
+    up();
     $dir  = $path;
     $allFiles = scandir($dir);
     $files = array_diff($allFiles, array('.', '..')); ?>
     <table>
         <thead>
         <tr>
-            <th> Name </th>
-            <th> File Size </th>
-            <th> Created_At </th>
-            <th> File Perms </th>
+            <th> <a href="">Name</a> </th>
+            <th> <a href="">File Size</a> </th>
+            <th> <a href="">Created_At</a> </th>
+            <th> <a href="">File Perms</a> </th>
         </tr>
         </thead>
         <tbody>
         <?php foreach ($files as $file){ ?>
         <tr>
-            <td><a href = '/?action=view&file=<?php echo $path .'/'. $file ?>'><?php echo $file. '</a>' .'</td>
+            <td><a href = 'http://localhost/view/<?php echo $path. $file?>'><?php echo $file. '</a>' .'</td>
         <td>' .filesize($path.'/'. $file). ' bytes' . '</td>
         <td>' .date ("m.d.Y.H:i:s.", filemtime($path.'/' . $file)) . '</td>
-        <td><a href="/?action=permission&file='.$path .'/'.$file.'">' .substr(sprintf('%o', fileperms($path.'/' .$file)), -4)  . '</td>
+        <td><a href="http://localhost/permission/'.$path .'/'.$file.'">' .substr(sprintf('%o', fileperms($path.'/' .$file)), -4)  . '</td>
     </a></tr>'
                     ;}?>
         </tbody>
     </table>
-    <form method="POST" action="/?action=upload&file=<?php echo $path?>" enctype="multipart/form-data">
+    <form method="POST" action="http://localhost/upload/<?php echo $path?>" enctype="multipart/form-data">
         <div>
             <span>Upload a File:</span>
             <input type="file" name="uploadedFile" />
